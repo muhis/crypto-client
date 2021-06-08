@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 from uuid import uuid4
 from pydantic import BaseModel, Field, PositiveFloat
 import pydantic
@@ -6,14 +6,21 @@ from datetime import datetime
 from pydantic.types import UUID4
 from enum import Enum, IntEnum
 
+from pydantic.typing import NoneType
+
 
 class TransactionSide(str, Enum):
-    buy: str = "buy"
-    sell: str = "sell"
+    BUY: str = "buy"
+    SELL: str = "sell"
 
 
 class Instrument(str, Enum):
     BTCUSD_SPOT: str = "BTCUSD.SPOT"
+
+
+class OrderType(str, Enum):
+    FOK: str = "FOK"  # Fill or Kill
+    MKT: str = "MKT"  # Market Order
 
 
 class Transaction(BaseModel):
@@ -35,7 +42,10 @@ class RequestForQuote(Transaction):
 
 
 class CreatedRequestForQuote(RequestForQuote, Created, Priced):
-    pass
+    valid_until: datetime
+
+    def is_stale(self):
+        return self.valid_until > datetime.now()
 
 
 class Trade(Transaction, Created, Priced):
@@ -45,9 +55,16 @@ class Trade(Transaction, Created, Priced):
     executing_unit: str
 
 
-class Order(Transaction, Created, Priced):
-    order_id: UUID4 = Field(default_factory=uuid4)
+class Order(Transaction, Priced):
     client_order_id: UUID4 = Field(default_factory=uuid4)
-    executed_price: PositiveFloat
     executing_unit: str
-    trades: Optional[List[Trade]]
+
+class NonExecutedOrder(Order):
+    order_type: OrderType
+    acceptable_slippage_in_basis_points: Optional[PositiveFloat]
+
+
+class ExecutedOrder(Order, Created):
+    order_id: UUID4
+    executed_price: Union[PositiveFloat, NoneType]
+    trades: List[Trade]

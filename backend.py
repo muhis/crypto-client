@@ -1,6 +1,6 @@
 from typing import Dict
 import requests
-from models import RequestForQuote, CreatedRequestForQuote
+from models import ExecutedOrder, NonExecutedOrder, RequestForQuote, CreatedRequestForQuote, Order, ExecutedOrder
 
 
 BASE_URL = 'http://127.0.0.1:8000/api.uat.b2c2.net'
@@ -16,6 +16,14 @@ class B2C2ApiClient(object):
         )
         response.raise_for_status()
         return CreatedRequestForQuote(**response.json())
+
+    def execute_order(self, order: NonExecutedOrder) -> ExecutedOrder:
+        url = self._construct_url('order')
+        response = requests.post(
+            url=url, data=order.json(), headers=self._headers,
+        )
+        response.raise_for_status()
+        return ExecutedOrder(**response.json())
 
     def _construct_url(self, endpoint: str) -> str:
         return f'{self.BASE_URL}/{endpoint}/'
