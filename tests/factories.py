@@ -2,6 +2,8 @@ from uuid import uuid4
 import models
 from models import ExecutedOrder, Order, TransactionSide, Instrument, OrderType
 from typing import List, Optional
+from datetime import datetime, time, timedelta
+import random
 
 class OrderFactory():
     executing_unit='Test client'
@@ -26,6 +28,27 @@ class ExecutedOrderFactory():
 
 
 class ModelsFactory():
+    @staticmethod
+    def RequestForQuote() -> models.RequestForQuote:
+        return models.RequestForQuote(
+            side=TransactionSide.BUY,
+            quantity=20,
+            instrument=Instrument.BTCUSD_SPOT,
+            price=1234,
+        )
+
+    @classmethod
+    def CreatedRequestForQuote(cls, rfq: Optional[models.RequestForQuote]=None):
+        if not rfq:
+            rfq = cls.RequestForQuote()
+
+        return models.CreatedRequestForQuote(
+            valid_until=datetime.now() + timedelta(days=10),
+            created=datetime.now(),
+            price=(random.random() * 100),
+            **rfq.dict()
+        )
+
     @staticmethod
     def NoneExecutedOrder() -> models.NonExecutedOrder:
         return models.NonExecutedOrder(

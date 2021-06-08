@@ -1,5 +1,7 @@
 from datetime import date, datetime
 from unittest import TestCase
+
+from pydactory.pydactory import Factory
 from backend import B2C2ApiClient
 from models import CreatedRequestForQuote, RequestForQuote, TransactionSide, Instrument, ExecutedOrder, Order
 from models import OrderType
@@ -18,15 +20,15 @@ class B2C2ApiClientTest(TestCase):
             responses.POST, f'{B2C2ApiClient.BASE_URL}/request_for_quote/',
             status=400
         )
-        mock_rfq = self._create_mock_rfq_object()
+        mock_rfq = ModelsFactory.RequestForQuote()
         with self.assertRaises(requests.exceptions.HTTPError):
             api_client = B2C2ApiClient()
             api_client.request_for_quote(mock_rfq)
 
     @responses.activate
     def test_request_for_quote__success(self):
-        mock_rfq_object = self._create_mock_rfq_object()
-        created_rfq_object = self._create_mock_created_rfq_object(rfq_object=mock_rfq_object)
+        mock_rfq_object = ModelsFactory.RequestForQuote()
+        created_rfq_object = ModelsFactory.CreatedRequestForQuote(rfq=mock_rfq_object)
         responses.add(
             responses.POST, f'{B2C2ApiClient.BASE_URL}/request_for_quote/',
             status=200, body=created_rfq_object.json(), content_type='application/json'
@@ -39,7 +41,7 @@ class B2C2ApiClientTest(TestCase):
     @responses.activate
     def test_validator(self):
         """Test with response from documentation"""
-        mock_rfq_object = self._create_mock_rfq_object()
+        mock_rfq_object = ModelsFactory.RequestForQuote()
         responses.add(
             responses.POST, f'{B2C2ApiClient.BASE_URL}/request_for_quote/',
             status=200, body=json.dumps(CREATE_RFQ), content_type='application/json'
@@ -73,30 +75,4 @@ class B2C2ApiClientTest(TestCase):
         executed_order = api_client.execute_order(order=order)
         self.maxDiff = None
         self.assertEqual(executed_order.json(), mock_executed_order.json())
-
-    def _create_mock_rfq_object(self):
-        return RequestForQuote(
-            side=TransactionSide.BUY,
-            quantity=20,
-            instrument=Instrument.BTCUSD_SPOT,
-            price=1234,
-        )
-    
-    def _create_mock_created_rfq_object(self, rfq_object):
-        return CreatedRequestForQuote(
-            valid_until=datetime.now(),
-            created=datetime.now(),
-            price=(random.random() * 10),
-            **rfq_object.dict()
-        )
-    
-    def _create_order(self) -> Order:
-        return Order(
-            executing_unit='Test client',
-            order_type=OrderType.FOK,
-            price=1122,
-            side=TransactionSide.SELL,
-            quantity=20,
-            instrument=Instrument.BTCUSD_SPOT,
-        )
     
