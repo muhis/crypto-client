@@ -1,9 +1,9 @@
 from typing import Dict
 import requests
-from models import ExecutedOrder, NonExecutedOrder, RequestForQuote, CreatedRequestForQuote, Order, ExecutedOrder
+from models import Balances, ExecutedOrder, NonExecutedOrder, RequestForQuote, CreatedRequestForQuote, Order, ExecutedOrder
 
 
-BASE_URL = 'http://127.0.0.1:8000/api.uat.b2c2.net'
+BASE_URL = 'https://api.uat.b2c2.net/'
 
 
 class B2C2ApiClient(object):
@@ -25,10 +25,17 @@ class B2C2ApiClient(object):
         response.raise_for_status()
         return ExecutedOrder(**response.json())
 
+    def get_balances(self):
+        url = self._construct_url('balance')
+        response = requests.get(
+            url=url, headers=self._headers,
+        )
+        return Balances(**response.json())
+
     def _construct_url(self, endpoint: str) -> str:
         return f'{self.BASE_URL}/{endpoint}/'
 
     @property
     def _headers(self) -> Dict[str, str]:
-        api_token = '9b44b09199c61bcf9416ad846dd0e4'
-        return {'Authorization': 'Token %s' % api_token}
+        api_token = 'e13e627c49705f83cbe7b60389ac411b6f86fee7'
+        return {'Authorization': f'Token {api_token}'}

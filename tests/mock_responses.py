@@ -34,3 +34,16 @@ EXECUTE_ORDER = {
   ],
   "created": "2018-02-06T16:07:50.122206Z"
 }
+
+GET_BALANCES = {
+  "USD": "0",
+  "BTC": "0",
+  "JPY": "0",
+  "GBP": "0",
+  "ETH": "0",
+  "EUR": "0",
+  "CAD": "0",
+  "LTC": "0",
+  "XRP": "0",
+  "BCH": "0"
+}

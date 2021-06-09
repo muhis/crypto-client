@@ -1,7 +1,9 @@
 from uuid import uuid4
+
+from pydantic.types import PositiveFloat
 import models
 from models import ExecutedOrder, Order, TransactionSide, Instrument, OrderType
-from typing import List, Optional
+from typing import Dict, List, Optional
 from datetime import datetime, time, timedelta
 import random
 
@@ -96,3 +98,10 @@ class ModelsFactory():
                 "executing_unit": "risk-adding-strategy",
             }
         )
+
+    def Balances(balance: Optional[float]=None) -> models.Balances:
+        fields = models.Balances.schema()['properties'].keys()
+        payload: Dict[str, float] = {}
+        for field in fields:
+            payload[field] = balance if not balance is None else random.random * 10
+        return models.Balances(**payload)

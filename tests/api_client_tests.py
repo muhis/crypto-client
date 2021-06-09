@@ -3,12 +3,12 @@ from unittest import TestCase
 
 from pydactory.pydactory import Factory
 from backend import B2C2ApiClient
-from models import CreatedRequestForQuote, RequestForQuote, TransactionSide, Instrument, ExecutedOrder, Order
+from models import Balances, CreatedRequestForQuote, RequestForQuote, TransactionSide, Instrument, ExecutedOrder, Order
 from models import OrderType
 import responses
 import requests
 import random
-from tests.mock_responses import CREATE_RFQ, EXECUTE_ORDER
+from tests.mock_responses import CREATE_RFQ, EXECUTE_ORDER, GET_BALANCES
 import json
 from tests.factories import ModelsFactory
 
@@ -66,13 +66,32 @@ class B2C2ApiClientTest(TestCase):
     def test_execute_order__documentation_response(self):
         order = ModelsFactory.NoneExecutedOrder()
         mock_executed_order = ExecutedOrder(**EXECUTE_ORDER)
-        
         responses.add(
             responses.POST, f'{B2C2ApiClient.BASE_URL}/order/',
             status=200, body=json.dumps(EXECUTE_ORDER), content_type='application/json'
         )
         api_client = B2C2ApiClient()
         executed_order = api_client.execute_order(order=order)
-        self.maxDiff = None
         self.assertEqual(executed_order.json(), mock_executed_order.json())
     
+    @responses.activate
+    def test_get_balances(self):
+        mock_balances = ModelsFactory.Balances()
+        responses.add(
+            responses.GET, f'{B2C2ApiClient.BASE_URL}/balance/',
+            status=200, body=mock_balances.json(), content_type='application/json'
+        )
+        api_client = B2C2ApiClient()
+        balances = api_client.get_balances()
+        self.assertEqual(balances, mock_balances)
+    
+    @responses.activate
+    def test_get_balanaces__documentation_repsonse(self):
+        responses.add(
+            responses.GET, f'{B2C2ApiClient.BASE_URL}/balance/',
+            status=200, body=json.dumps(GET_BALANCES), content_type='application/json'
+        )
+        expected_balances = ModelsFactory.Balances(balance=0)
+        api_client = B2C2ApiClient()
+        balances = api_client.get_balances()
+        self.assertEqual(balances, expected_balances)

@@ -7,6 +7,7 @@ from pydantic.types import UUID4
 from enum import Enum, IntEnum
 
 from pydantic.typing import NoneType
+from traitlets.traitlets import Float
 
 
 class TransactionSide(str, Enum):
@@ -45,7 +46,7 @@ class CreatedRequestForQuote(RequestForQuote, Created, Priced):
     valid_until: datetime
 
     def is_stale(self):
-        return self.valid_until > datetime.now()
+        return self.valid_until < datetime.now()
 
 
 class Trade(Transaction, Created, Priced):
@@ -66,5 +67,18 @@ class NonExecutedOrder(Order):
 
 class ExecutedOrder(Order, Created):
     order_id: UUID4
-    executed_price: Union[PositiveFloat, NoneType]
+    executed_price: Optional[PositiveFloat]
     trades: List[Trade]
+
+
+class Balances(BaseModel):
+    USD: float
+    BTC: float
+    JPY: float
+    GBP: float
+    ETH: float
+    EUR: float
+    CAD: float
+    LTC: float
+    XRP: float
+    BCH: float
